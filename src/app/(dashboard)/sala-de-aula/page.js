@@ -49,7 +49,7 @@ export default function SalaDeAulaPage() {
   const [isMounted, setIsMounted] = useState(false);
 
   // --- Estados de Conclusão e Gamificação ---
-  const [isAlreadyCompleted, setIsAlreadyCompleted] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
   const [justCompleted, setJustCompleted] = useState(false);
   const [userRole, setUserRole] = useState('student');
@@ -103,7 +103,7 @@ export default function SalaDeAulaPage() {
     if (activeLesson) {
       async function checkStatus() {
         const status = await getCompletionStatus(activeLesson.id);
-        setIsAlreadyCompleted(status);
+        setIsCompleted(status);
         setJustCompleted(false);
       }
       checkStatus();
@@ -120,7 +120,7 @@ export default function SalaDeAulaPage() {
    * Este processo dispara um trigger no Supabase que premia o aluno com +50 XP.
    */
   const handleComplete = async () => {
-    if (!activeLesson || isAlreadyCompleted || justCompleted) return;
+    if (!activeLesson || isCompleted || justCompleted) return;
     
     setIsCompleting(true);
     try {
@@ -128,7 +128,7 @@ export default function SalaDeAulaPage() {
       if (result.success) {
         // Feedback visual imediato e desabilita o botão
         setJustCompleted(true);
-        setIsAlreadyCompleted(true);
+        setIsCompleted(true);
       } else {
         alert(result.error || 'Erro ao concluir aula.');
       }
