@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --primary-color: #294a70;
+  --primary-color-rgb: 41, 74, 112;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply font-outfit text-slate-900 bg-[#f8fafc];
+  }
+}
+
+/* Custom Scrollbar Premium */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-200 rounded-full border-4 border-transparent bg-clip-content hover:bg-slate-300 transition-colors;
+}
+
+.premium-card {
+  @apply bg-white border border-slate-100 shadow-sm rounded-[2.5rem];
+}
+
+.premium-input {
+  @apply bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-primary-100 focus:border-primary outline-none transition-all shadow-sm;
+}
