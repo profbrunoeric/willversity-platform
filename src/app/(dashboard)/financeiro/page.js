@@ -53,7 +53,7 @@ export default async function FinanceiroPage() {
         </div>
 
         <div className="glass-card p-6 border-primary/20 bg-primary/5 relative overflow-hidden group">
-          <TrendingUp className="absolute -right-2 -bottom-2 text-primary/5 w-20 h-20 rotate-12 group-hover:scale-110 transition-transform" />
+          <TrendingUp className="absolute right-4 bottom-4 text-primary/5 w-16 h-16 rotate-12 group-hover:scale-110 transition-transform" />
           <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-2">Projeção Futura</p>
           <h3 className="text-2xl font-black text-slate-900">{formatCurrency(report.projection)}</h3>
           <p className="text-[10px] text-primary/60 mt-2 font-medium">Soma de todas as mensalidades</p>
