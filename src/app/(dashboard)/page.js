@@ -42,10 +42,23 @@ export default async function DashboardPage() {
     .eq('id', user?.id)
     .single();
 
-  // Se não encontrar o perfil, mas o usuário está logado, 
-  // assumimos admin se for o primeiro usuário ou mantemos a sessão segura.
-  const userRole = profile?.role || 'admin'; // Alterado para admin por padrão para evitar bloqueio do dono
-  const firstName = profile?.full_name?.split(' ')[0] || 'Usuário';
+  const userRole = profile?.role || 'admin';
+  
+  // Lógica robusta para o nome: Perfil > Metadata > Email > Fallback
+  const rawName = profile?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name || '';
+  let firstName = rawName.split(' ')[0] || '';
+  
+  // Se o nome for genérico ou vazio, tenta extrair do email
+  if (!firstName || firstName.toLowerCase() === 'usuário' || firstName.toLowerCase() === 'usuario') {
+    const emailName = user?.email?.split('@')[0] || '';
+    if (emailName) {
+      // Limpa pontos ou números comuns em emails (ex: bruno.eric -> Bruno)
+      firstName = emailName.split('.')[0].split('_')[0].replace(/[0-9]/g, '');
+      firstName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
+    }
+  }
+  
+  if (!firstName) firstName = 'Campeão';
   const userXP = profile?.xp || 0;
 
   const statsData = await getDashboardStats();

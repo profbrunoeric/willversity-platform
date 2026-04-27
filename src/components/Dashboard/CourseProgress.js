@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookOpen, Trophy, ArrowRight, Zap } from 'lucide-react';
+import { BookOpen, Trophy, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 export default function CourseProgress({ progress }) {
@@ -18,11 +18,6 @@ export default function CourseProgress({ progress }) {
 
   return (
     <div className="bg-white border border-slate-100 rounded-[2.5rem] p-8 shadow-sm overflow-hidden relative group">
-      {/* Background Decor */}
-      <div className="absolute top-0 right-0 p-8 text-primary/5 -translate-y-4 translate-x-4 group-hover:scale-110 transition-all">
-        <Zap size={120} />
-      </div>
-
       <div className="flex flex-col md:flex-row items-center gap-10 relative z-10">
         {/* Circle Progress (SVG) */}
         <div className="relative flex-shrink-0">
@@ -86,13 +81,15 @@ export default function CourseProgress({ progress }) {
         </div>
 
         {/* CTA Button */}
-        <Link 
-          href="/sala-de-aula"
-          className="px-8 py-4 bg-slate-900 text-white rounded-2xl font-black text-sm flex items-center gap-3 hover:bg-primary transition-all shadow-xl active:scale-95"
-        >
-          CONTINUAR ESTUDANDO
-          <ArrowRight size={18} />
-        </Link>
+        <div className="relative group/btn">
+          <Link 
+            href="/sala-de-aula"
+            className="px-8 py-4 bg-slate-900 text-white rounded-2xl font-black text-sm flex items-center gap-3 hover:bg-primary transition-all shadow-xl active:scale-95 relative z-10"
+          >
+            CONTINUAR ESTUDANDO
+            <ArrowRight size={18} />
+          </Link>
+        </div>
       </div>
     </div>
   );

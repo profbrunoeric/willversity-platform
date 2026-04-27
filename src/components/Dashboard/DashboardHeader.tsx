@@ -28,12 +28,6 @@ export default function DashboardHeader({ firstName, platformName, teachers, stu
         </div>
         
         <div className="flex items-center gap-4">
-          <Link 
-            href="/alunos" 
-            className="glass-pill px-6 py-3 font-bold text-sm text-slate-700 hover:bg-white hover:shadow-xl transition-all"
-          >
-            Gestão de Alunos
-          </Link>
           <button 
             onClick={() => setIsBookingOpen(true)}
             className="flex items-center gap-2 px-6 py-4 bg-primary text-white rounded-full font-bold text-sm hover:scale-105 active:scale-95 transition-all shadow-xl shadow-primary/30"
