@@ -40,6 +40,49 @@ export async function getDashboardStats() {
 }
 
 /**
+ * Gera o relatório financeiro consolidado (Inflow, Outflow, Projeções)
+ */
+export async function getFinancialReport() {
+  const supabase = createClient();
+  
+  const now = new Date();
+  const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+
+  // 1. Entradas Reais (Mês atual)
+  const { data: payments } = await supabase
+    .from('payment_history')
+    .select('amount')
+    .gte('payment_date', firstDayOfMonth);
+  
+  const realInflow = payments?.reduce((acc, curr) => acc + curr.amount, 0) || 0;
+
+  // 2. Saídas Reais (Mês atual)
+  const { data: expenses } = await supabase
+    .from('expenses')
+    .select('amount')
+    .eq('status', 'paid')
+    .gte('created_at', firstDayOfMonth);
+    
+  const realOutflow = expenses?.reduce((acc, curr) => acc + curr.amount, 0) || 0;
+
+  // 3. Projeção de Futuro (Soma de mensalidades de todos os alunos ativos)
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('monthly_fee')
+    .eq('role', 'student')
+    .or('status.eq.active,status.is.null');
+
+  const projectedRevenue = profiles?.reduce((acc, curr) => acc + (curr.monthly_fee || 0), 0) || 0;
+
+  return {
+    inflow: realInflow,
+    outflow: realOutflow,
+    balance: realInflow - realOutflow,
+    projection: projectedRevenue
+  };
+}
+
+/**
  * Busca alunos que não tiveram aulas registradas nos últimos 15 dias
  */
 export async function getInactiveStudents() {
