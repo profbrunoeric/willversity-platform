@@ -275,3 +275,49 @@ export async function getLeaderboard() {
 
   return data;
 }
+
+/**
+ * Atualiza o status financeiro do aluno
+ */
+export async function updateFinancialStatus(studentId, status) {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from('profiles')
+    .update({ payment_status: status })
+    .eq('id', studentId);
+
+  if (error) {
+    console.error('Erro ao atualizar financeiro:', error);
+    return { success: false, error: error.message };
+  }
+
+  revalidatePath(`/alunos/${studentId}`);
+  revalidatePath('/alunos');
+  return { success: true };
+}
+
+/**
+ * Registra presença/falta no diário de classe
+ */
+export async function recordAttendance(studentId, status) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const { error } = await supabase
+    .from('lesson_evolutions')
+    .insert([{
+      student_id: studentId,
+      teacher_id: user.id,
+      class_date: new Date().toISOString(),
+      attendance_status: status, // 'present' ou 'absent'
+      consolidation: status === 'absent' ? 'ALUNO AUSENTE' : 'Presença registrada.'
+    }]);
+
+  if (error) {
+    console.error('Erro ao registrar presença:', error);
+    return { success: false, error: error.message };
+  }
+
+  revalidatePath(`/alunos/${studentId}`);
+  return { success: true };
+}

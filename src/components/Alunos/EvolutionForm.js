@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react';
 import { BookOpen, Calendar, Clock, BrainCircuit, MessageSquare, Flag, Save, Loader2 } from 'lucide-react';
-import { saveEvolution } from '@/app/(dashboard)/alunos/actions';
+import { saveEvolution, recordAttendance } from '@/app/(dashboard)/alunos/actions';
 import EvolutionTemplates from './EvolutionTemplates';
+import { UserCheck, UserMinus } from 'lucide-react';
 
 export default function EvolutionForm({ studentId }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -46,6 +47,15 @@ export default function EvolutionForm({ studentId }) {
     setIsSubmitting(false);
   };
 
+  const handleAttendance = async (status) => {
+    setIsSubmitting(true);
+    const res = await recordAttendance(studentId, status);
+    if (res.success) {
+      alert(status === 'present' ? 'Presença confirmada!' : 'Falta registrada.');
+    }
+    setIsSubmitting(false);
+  };
+
   const steps = [
     { name: 'warm_up', label: '1. WARM-UP', icon: Clock, placeholder: 'Como a aula começou? Quebra-gelo, revisão rápida...' },
     { name: 'comprehensible_input', label: '2. COMPREHENSIBLE INPUT', icon: BrainCircuit, placeholder: 'Novos conceitos apresentados, vocabulário, gramática no contexto...' },
@@ -61,6 +71,28 @@ export default function EvolutionForm({ studentId }) {
           <BookOpen size={20} />
         </div>
         <h3 className="text-2xl font-black text-slate-800 tracking-tight">Registrar Evolução</h3>
+      </div>
+
+      {/* Diário Digital - Presença/Falta */}
+      <div className="flex items-center gap-4 mb-8 p-6 bg-slate-50/50 rounded-[2rem] border border-slate-100">
+        <button
+          type="button"
+          onClick={() => handleAttendance('present')}
+          disabled={isSubmitting}
+          className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-emerald-50 text-emerald-600 rounded-2xl font-black text-xs hover:bg-emerald-600 hover:text-white transition-all border border-emerald-100 shadow-sm"
+        >
+          <UserCheck size={18} />
+          MARCAR PRESENÇA
+        </button>
+        <button
+          type="button"
+          onClick={() => handleAttendance('absent')}
+          disabled={isSubmitting}
+          className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-rose-50 text-rose-600 rounded-2xl font-black text-xs hover:bg-rose-600 hover:text-white transition-all border border-rose-100 shadow-sm"
+        >
+          <UserMinus size={18} />
+          MARCAR FALTA
+        </button>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
