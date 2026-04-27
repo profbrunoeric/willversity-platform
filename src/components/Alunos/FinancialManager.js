@@ -4,15 +4,20 @@ import React, { useState } from 'react';
 import { CreditCard, CheckCircle2, AlertCircle, Clock, ChevronDown } from 'lucide-react';
 import { updateFinancialStatus } from '@/app/(dashboard)/alunos/actions';
 
-export default function FinancialManager({ studentId, currentStatus }) {
-  const [status, setStatus] = useState(currentStatus || 'paid');
+export default function FinancialManager({ student, currentStatus }) {
+  const [data, setData] = useState({
+    status: currentStatus || 'paid',
+    dueDay: student?.due_day || 10,
+    monthlyFee: student?.monthly_fee || 0
+  });
   const [isUpdating, setIsUpdating] = useState(false);
 
-  const handleUpdate = async (newStatus) => {
+  const handleUpdate = async (updates) => {
+    const newData = { ...data, ...updates };
     setIsUpdating(true);
-    const res = await updateFinancialStatus(studentId, newStatus);
+    const res = await updateFinancialStatus(student.id, newData);
     if (res.success) {
-      setStatus(newStatus);
+      setData(newData);
     }
     setIsUpdating(false);
   };
@@ -27,57 +32,80 @@ export default function FinancialManager({ studentId, currentStatus }) {
           <h3 className="text-xl font-black text-slate-800 tracking-tight">Gestão Financeira</h3>
         </div>
         <div className={`px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
-          status === 'overdue' ? 'bg-rose-50 text-rose-600 border-rose-100' :
-          status === 'pending' ? 'bg-amber-50 text-amber-600 border-amber-100' :
+          data.status === 'overdue' ? 'bg-rose-50 text-rose-600 border-rose-100' :
+          data.status === 'pending' ? 'bg-amber-50 text-amber-600 border-amber-100' :
           'bg-emerald-50 text-emerald-600 border-emerald-100'
         }`}>
-          {status === 'overdue' ? 'Em Atraso' : status === 'pending' ? 'Pendente' : 'Em Dia'}
+          {data.status === 'overdue' ? 'Em Atraso' : data.status === 'pending' ? 'Pendente' : 'Em Dia'}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 mb-8">
+        <div>
+          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Dia de Vencimento</label>
+          <input 
+            type="number" 
+            value={data.dueDay}
+            onChange={(e) => handleUpdate({ dueDay: parseInt(e.target.value) })}
+            className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold focus:bg-white transition-all outline-none"
+            placeholder="Ex: 10"
+          />
+        </div>
+        <div>
+          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Valor Mensalidade</label>
+          <input 
+            type="number" 
+            value={data.monthlyFee}
+            onChange={(e) => handleUpdate({ monthlyFee: parseFloat(e.target.value) })}
+            className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold focus:bg-white transition-all outline-none"
+            placeholder="Ex: 150.00"
+          />
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-3">
-        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Alterar Status de Mensalidade</p>
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Alterar Status</p>
         
         <button 
-          onClick={() => handleUpdate('paid')}
+          onClick={() => handleUpdate({ status: 'paid' })}
           disabled={isUpdating}
           className={`flex items-center justify-between p-4 rounded-2xl transition-all border ${
-            status === 'paid' ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : 'bg-slate-50 border-slate-100 text-slate-400 hover:bg-slate-100'
+            data.status === 'paid' ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : 'bg-slate-50 border-slate-100 text-slate-400 hover:bg-slate-100'
           }`}
         >
           <div className="flex items-center gap-3">
             <CheckCircle2 size={18} />
-            <span className="font-bold text-sm">Mensalidade Paga (Em Dia)</span>
+            <span className="font-bold text-sm">Mensalidade Paga</span>
           </div>
-          {status === 'paid' && <div className="w-2 h-2 bg-emerald-500 rounded-full" />}
+          {data.status === 'paid' && <div className="w-2 h-2 bg-emerald-500 rounded-full" />}
         </button>
 
         <button 
-          onClick={() => handleUpdate('pending')}
+          onClick={() => handleUpdate({ status: 'pending' })}
           disabled={isUpdating}
           className={`flex items-center justify-between p-4 rounded-2xl transition-all border ${
-            status === 'pending' ? 'bg-amber-50 border-amber-200 text-amber-900' : 'bg-slate-50 border-slate-100 text-slate-400 hover:bg-slate-100'
+            data.status === 'pending' ? 'bg-amber-50 border-amber-200 text-amber-900' : 'bg-slate-50 border-slate-100 text-slate-400 hover:bg-slate-100'
           }`}
         >
           <div className="flex items-center gap-3">
             <Clock size={18} />
-            <span className="font-bold text-sm">Pendente / Aguardando</span>
+            <span className="font-bold text-sm">Pendente</span>
           </div>
-          {status === 'pending' && <div className="w-2 h-2 bg-amber-500 rounded-full" />}
+          {data.status === 'pending' && <div className="w-2 h-2 bg-amber-500 rounded-full" />}
         </button>
 
         <button 
-          onClick={() => handleUpdate('overdue')}
+          onClick={() => handleUpdate({ status: 'overdue' })}
           disabled={isUpdating}
           className={`flex items-center justify-between p-4 rounded-2xl transition-all border ${
-            status === 'overdue' ? 'bg-rose-50 border-rose-200 text-rose-900' : 'bg-slate-50 border-slate-100 text-slate-400 hover:bg-slate-100'
+            data.status === 'overdue' ? 'bg-rose-50 border-rose-200 text-rose-900' : 'bg-slate-50 border-slate-100 text-slate-400 hover:bg-slate-100'
           }`}
         >
           <div className="flex items-center gap-3">
             <AlertCircle size={18} />
-            <span className="font-bold text-sm">Atrasado / Inadimplente</span>
+            <span className="font-bold text-sm">Em Atraso</span>
           </div>
-          {status === 'overdue' && <div className="w-2 h-2 bg-rose-500 rounded-full" />}
+          {data.status === 'overdue' && <div className="w-2 h-2 bg-rose-500 rounded-full" />}
         </button>
       </div>
       

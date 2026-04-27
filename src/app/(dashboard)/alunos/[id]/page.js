@@ -22,6 +22,8 @@ import EditStudentTrigger from '@/components/Alunos/EditStudentTrigger';
 import StudentAppointments from '@/components/Alunos/StudentAppointments';
 import WhatsAppQuickAlerts from '@/components/Alunos/WhatsAppQuickAlerts';
 import EvolutionForm from '@/components/Alunos/EvolutionForm';
+import FinancialManager from '@/components/Alunos/FinancialManager';
+import PaymentHistoryManager from '@/components/Alunos/PaymentHistoryManager';
 
 // Busca os dados do aluno e seu histórico de evolução
 async function getStudentData(id) {
@@ -116,7 +118,10 @@ export default async function StudentDetailPage({ params }) {
         {/* Right Column: Appointments & History */}
         <div className="space-y-6">
           {userRole === 'admin' && (
-            <FinancialManager studentId={student.id} currentStatus={student.payment_status} />
+            <>
+              <FinancialManager student={student} currentStatus={student.payment_status} />
+              <PaymentHistoryManager studentId={student.id} monthlyFee={student.monthly_fee} />
+            </>
           )}
           
           <WhatsAppQuickAlerts student={student} nextAppointment={appointments[0]} />

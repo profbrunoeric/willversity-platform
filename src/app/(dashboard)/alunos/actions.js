@@ -277,13 +277,17 @@ export async function getLeaderboard() {
 }
 
 /**
- * Atualiza o status financeiro do aluno
+ * Atualiza o status financeiro e o dia de vencimento do aluno
  */
-export async function updateFinancialStatus(studentId, status) {
+export async function updateFinancialStatus(studentId, data) {
   const supabase = createClient();
   const { error } = await supabase
     .from('profiles')
-    .update({ payment_status: status })
+    .update({ 
+      payment_status: data.status,
+      due_day: data.dueDay,
+      monthly_fee: data.monthlyFee 
+    })
     .eq('id', studentId);
 
   if (error) {
@@ -292,7 +296,38 @@ export async function updateFinancialStatus(studentId, status) {
   }
 
   revalidatePath(`/alunos/${studentId}`);
-  revalidatePath('/alunos');
+  revalidatePath('/financeiro');
+  return { success: true };
+}
+
+/**
+ * Registra um novo pagamento no histórico
+ */
+export async function registerPayment(paymentData) {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from('payment_history')
+    .insert([{
+      student_id: paymentData.studentId,
+      amount: paymentData.amount,
+      reference_month: paymentData.referenceMonth,
+      payment_method: paymentData.paymentMethod,
+      payment_date: new Date().toISOString()
+    }]);
+
+  if (error) {
+    console.error('Erro ao registrar pagamento:', error);
+    return { success: false, error: error.message };
+  }
+
+  // Ao registrar pagamento, opcionalmente marcamos como "Pago"
+  await supabase
+    .from('profiles')
+    .update({ payment_status: 'paid' })
+    .eq('id', paymentData.studentId);
+
+  revalidatePath('/financeiro');
+  revalidatePath(`/alunos/${paymentData.studentId}`);
   return { success: true };
 }
 

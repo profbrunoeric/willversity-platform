@@ -116,7 +116,7 @@ export default async function FinanceiroPage() {
                   <td className="px-8 py-6 text-right">
                     <div className="flex items-center justify-end gap-2">
                       {/* Componente Client para troca rápida */}
-                      <FinancialManager studentId={student.id} currentStatus={student.payment_status} />
+                      <FinancialManager student={student} currentStatus={student.payment_status} />
                     </div>
                   </td>
                 </tr>
