@@ -233,3 +233,25 @@ export async function generateRegistrationCode(role = 'student') {
   revalidatePath('/configuracoes');
   return { success: true, code };
 }
+
+/**
+ * Busca rápida de alunos para o Command Palette
+ */
+export async function quickSearchStudents(query) {
+  if (!query || query.length < 2) return [];
+  
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, full_name, email, role')
+    .eq('role', 'student')
+    .ilike('full_name', `%${query}%`)
+    .limit(5);
+
+  if (error) {
+    console.error('Erro na busca rápida:', error);
+    return [];
+  }
+
+  return data;
+}

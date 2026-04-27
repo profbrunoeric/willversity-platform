@@ -30,6 +30,7 @@ const menuItems = [
   { icon: UserSquare2, label: 'Professores', href: '/professores' },
   { icon: Settings, label: 'Command Center', href: '/configuracoes' },
 ];
+import CommandPalette from './CommandPalette';
 
 export default function AdaptiveHub() {
   const pathname = usePathname();
@@ -39,6 +40,18 @@ export default function AdaptiveHub() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [platformName, setPlatformName] = useState('Willversity');
+
+  useEffect(() => {
+    // Atalho de Teclado (Ctrl+K ou Cmd+K)
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsSearchOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   useEffect(() => {
     setIsMounted(true);
@@ -195,6 +208,11 @@ export default function AdaptiveHub() {
           </div>
         </motion.nav>
       </div>
+
+      <CommandPalette 
+        isOpen={isSearchOpen} 
+        onClose={() => setIsSearchOpen(false)} 
+      />
     </>
   );
 }
