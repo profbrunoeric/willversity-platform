@@ -19,23 +19,40 @@ import AnnouncementBanner from '@/components/Announcements/AnnouncementBanner';
 import { createClient } from '@/lib/supabase/server';
 import LevelProgress from '@/components/Gamification/LevelProgress';
 import ActivityFeed from '@/components/Activity/ActivityFeed';
-import { getDashboardStats } from './stats-actions';
+import { getDashboardStats, getInactiveStudents } from './stats-actions';
 import { getAppointments } from './agenda/actions';
 import { getTeachers } from './professores/actions';
+import { getStudentProgress } from './activity-actions';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import DashboardHeader from '@/components/Dashboard/DashboardHeader';
 import LiveAppointments from '@/components/Dashboard/LiveAppointments';
+import CourseProgress from '@/components/Dashboard/CourseProgress';
+import BadgesSection from '@/components/Gamification/BadgesSection';
+import RetentionAlert from '@/components/Dashboard/RetentionAlert';
 
 export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   
-  // --- Busca de Dados Síncrona (Server Side) ---
-  // Obtemos estatísticas gerais, configurações de branding e dados para agendamento
+  // --- Busca de Dados ---
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('full_name, role, xp')
+    .eq('id', user?.id)
+    .single();
+
+  const userRole = profile?.role || 'student';
+  const firstName = profile?.full_name?.split(' ')[0] || 'Usuário';
+  const userXP = profile?.xp || 0;
+
   const statsData = await getDashboardStats();
   const settings = await getSettings();
   const platformName = settings?.platform_name || 'Willversity';
+
+  // Progresso se for aluno
+  const progress = userRole === 'student' ? await getStudentProgress() : null;
+  const inactiveStudents = userRole === 'admin' ? await getInactiveStudents() : [];
 
   // Buscar professores e alunos para popular o modal de agendamento rápido
   const [teachersResult, studentsData] = await Promise.all([
@@ -52,21 +69,14 @@ export default async function DashboardPage() {
   const tonight = new Date();
   tonight.setHours(23, 59, 59, 999);
 
-  const { data: todayAppointments } = await getAppointments({
+  const appointmentFilters = {
     startDate: today.toISOString(),
-    endDate: tonight.toISOString()
-  });
+    endDate: tonight.toISOString(),
+    ...(userRole === 'teacher' ? { teacherId: user.id } : {}),
+    ...(userRole === 'student' ? { studentId: user.id } : {})
+  };
 
-  // --- Saudação Personalizada ---
-  // Buscamos apenas o primeiro nome para uma interface mais amigável
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name')
-    .eq('id', user?.id)
-    .single();
-
-  const firstName = profile?.full_name?.split(' ')[0] || 'Diretor';
-
+  const { data: todayAppointments } = await getAppointments(appointmentFilters);
   const stats = [
     { 
       label: 'Total de Alunos', 
@@ -106,7 +116,7 @@ export default async function DashboardPage() {
     <div className="space-y-10 animate-in fade-in duration-1000">
       <AnnouncementBanner />
       {user && <LevelProgress studentId={user.id} />}
-      
+
       {/* Welcome Header (Client Component) */}
       <DashboardHeader 
         firstName={firstName} 
@@ -114,6 +124,9 @@ export default async function DashboardPage() {
         teachers={teachers} 
         students={students} 
       />
+
+      {progress && <CourseProgress progress={progress} />}
+      {userRole === 'student' && <BadgesSection xp={userXP} progress={progress} />}
 
       {/* Stats Grid - Bento Style */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -148,7 +161,8 @@ export default async function DashboardPage() {
         </div>
 
         {/* Side Feed */}
-        <div className="h-full">
+        <div className="space-y-8">
+          {userRole === 'admin' && <RetentionAlert students={inactiveStudents} />}
           <ActivityFeed />
         </div>
       </div>

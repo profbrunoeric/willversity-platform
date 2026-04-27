@@ -15,7 +15,8 @@ import {
   Menu,
   X,
   LogOut,
-  Settings
+  Settings,
+  Trophy
 } from 'lucide-react';
 import { signOut } from '@/app/(auth)/actions';
 import { getSettings } from '@/app/(dashboard)/configuracoes/actions';
@@ -27,6 +28,7 @@ const menuItems = [
   { icon: Users, label: 'Alunos', href: '/alunos' },
   { icon: BookOpen, label: 'Sala de Aula', href: '/sala-de-aula' },
   { icon: Calendar, label: 'Agenda', href: '/agenda' },
+  { icon: Trophy, label: 'Ranking', href: '/ranking' },
   { icon: UserSquare2, label: 'Professores', href: '/professores' },
   { icon: Settings, label: 'Command Center', href: '/configuracoes' },
 ];
@@ -86,11 +88,11 @@ export default function AdaptiveHub() {
     }
     
     if (userRole === 'teacher') {
-      return ['/', '/alunos', '/sala-de-aula', '/agenda'].includes(item.href);
+      return ['/', '/alunos', '/sala-de-aula', '/agenda', '/ranking'].includes(item.href);
     }
     
     if (userRole === 'student') {
-      return ['/', '/sala-de-aula', '/agenda'].includes(item.href);
+      return ['/', '/sala-de-aula', '/agenda', '/ranking'].includes(item.href);
     }
     
     return false;

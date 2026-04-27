@@ -20,6 +20,8 @@ import EvolutionTimeline from '@/components/Alunos/EvolutionTimeline';
 import ProgressionTracker from '@/components/Alunos/ProgressionTracker';
 import EditStudentTrigger from '@/components/Alunos/EditStudentTrigger';
 import StudentAppointments from '@/components/Alunos/StudentAppointments';
+import WhatsAppQuickAlerts from '@/components/Alunos/WhatsAppQuickAlerts';
+import EvolutionForm from '@/components/Alunos/EvolutionForm';
 
 // Busca os dados do aluno e seu histórico de evolução
 async function getStudentData(id) {
@@ -101,72 +103,13 @@ export default async function StudentDetailPage({ params }) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column: New Evolution Form */}
         <div className="lg:col-span-2 space-y-8">
-          <div className="bg-white rounded-[2.5rem] p-8 md:p-12 border border-slate-100 shadow-sm">
-            <div className="flex items-center gap-3 mb-8">
-              <div className="p-2 bg-amber-50 text-amber-600 rounded-lg">
-                <BookOpen size={20} />
-              </div>
-              <h3 className="text-2xl font-black text-slate-800 tracking-tight">Registrar Evolução</h3>
-            </div>
-
-            <form action={saveEvolution} className="space-y-8">
-              <input type="hidden" name="studentId" value={student.id} />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-xs font-black text-slate-400 mb-2 uppercase tracking-widest">
-                    Data da Aula
-                  </label>
-                  <div className="relative">
-                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                    <input 
-                      type="date" 
-                      name="classDate" 
-                      defaultValue={new Date().toISOString().split('T')[0]}
-                      className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-primary/5 outline-none transition-all"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* As 5 Etapas Pedagógicas */}
-              <div className="grid grid-cols-1 gap-6">
-                {[
-                  { name: 'warm_up', label: '1. WARM-UP', icon: Clock, placeholder: 'Como a aula começou? Quebra-gelo, revisão rápida...' },
-                  { name: 'comprehensible_input', label: '2. COMPREHENSIBLE INPUT', icon: BrainCircuit, placeholder: 'Novos conceitos apresentados, vocabulário, gramática no contexto...' },
-                  { name: 'guided_practice', label: '3. GUIDED PRACTICE', icon: BookOpen, placeholder: 'Exercícios controlados, correção imediata...' },
-                  { name: 'meaningful_output', label: '4. MEANINGFUL OUTPUT', icon: MessageSquare, placeholder: 'Uso livre do idioma, conversação real, aplicação prática...' },
-                  { name: 'consolidation', label: '5. CONSOLIDATION', icon: Flag, placeholder: 'Resumo da aula, dever de casa, pontos de melhoria...' },
-                ].map((step) => (
-                  <div key={step.name} className="group">
-                    <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 mb-3 tracking-[0.2em] uppercase group-focus-within:text-primary transition-colors">
-                      <step.icon size={14} /> {step.label}
-                    </label>
-                    <textarea 
-                      name={step.name}
-                      rows={3}
-                      className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-3xl focus:bg-white focus:border-primary/30 focus:ring-8 focus:ring-primary/5 outline-none transition-all text-sm resize-none placeholder:text-slate-300"
-                      placeholder={step.placeholder}
-                    ></textarea>
-                  </div>
-                ))}
-              </div>
-
-              <div className="pt-4">
-                <button 
-                  type="submit"
-                  className="w-full flex items-center justify-center gap-3 py-5 bg-primary text-white rounded-3xl font-black text-base shadow-2xl shadow-primary/30 hover:scale-[1.01] active:scale-[0.99] transition-all"
-                >
-                  <Save size={20} />
-                  SALVAR REGISTRO PEDAGÓGICO
-                </button>
-              </div>
-            </form>
-          </div>
+          <EvolutionForm studentId={student.id} />
         </div>
 
         {/* Right Column: Appointments & History */}
         <div className="space-y-6">
+          <WhatsAppQuickAlerts student={student} nextAppointment={appointments[0]} />
+          
           <StudentAppointments appointments={appointments} studentId={student.id} />
           
           <EvolutionTimeline evolutions={evolutions} />

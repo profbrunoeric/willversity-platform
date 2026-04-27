@@ -38,3 +38,32 @@ export async function getDashboardStats() {
     globalXP: totalXP
   };
 }
+
+/**
+ * Busca alunos que não tiveram aulas registradas nos últimos 15 dias
+ */
+export async function getInactiveStudents() {
+  const supabase = createClient();
+  
+  const fifteenDaysAgo = new Date();
+  fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
+
+  // 1. Buscar todas as evoluções dos últimos 15 dias
+  const { data: recentEvolutions } = await supabase
+    .from('lesson_evolutions')
+    .select('student_id')
+    .gte('class_date', fifteenDaysAgo.toISOString());
+
+  const activeStudentIds = new Set(recentEvolutions?.map(e => e.student_id) || []);
+
+  // 2. Buscar todos os alunos
+  const { data: allStudents } = await supabase
+    .from('profiles')
+    .select('id, full_name, level, last_sign_in_at')
+    .eq('role', 'student');
+
+  // 3. Filtrar os inativos
+  const inactiveStudents = allStudents?.filter(s => !activeStudentIds.has(s.id)) || [];
+
+  return inactiveStudents.slice(0, 5); // Mostrar apenas os top 5 para o card
+}

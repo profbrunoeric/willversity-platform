@@ -255,3 +255,23 @@ export async function quickSearchStudents(query) {
 
   return data;
 }
+
+/**
+ * Busca o ranking dos Top 10 alunos por XP
+ */
+export async function getLeaderboard() {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, full_name, xp, level')
+    .eq('role', 'student')
+    .order('xp', { ascending: false })
+    .limit(10);
+
+  if (error) {
+    console.error('Erro ao buscar ranking:', error);
+    return [];
+  }
+
+  return data;
+}

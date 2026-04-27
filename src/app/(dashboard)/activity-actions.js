@@ -74,3 +74,31 @@ export async function getGlobalActivity() {
 
   return activities;
 }
+
+/**
+ * Busca o progresso atual do aluno logado
+ */
+export async function getStudentProgress() {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  // 1. Total de aulas
+  const { count: totalLessons } = await supabase
+    .from('lessons')
+    .select('*', { count: 'exact', head: true });
+
+  // 2. Aulas concluídas pelo aluno
+  const { count: completedLessons } = await supabase
+    .from('lesson_completions')
+    .select('*', { count: 'exact', head: true })
+    .eq('student_id', user.id);
+
+  const percentage = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+
+  return {
+    total: totalLessons || 0,
+    completed: completedLessons || 0,
+    percentage
+  };
+}
