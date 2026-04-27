@@ -16,7 +16,9 @@ import {
   X,
   LogOut,
   Settings,
-  Trophy
+  Trophy,
+  Wallet,
+  ClipboardList
 } from 'lucide-react';
 import { signOut } from '@/app/(auth)/actions';
 import { getSettings } from '@/app/(dashboard)/configuracoes/actions';
@@ -26,6 +28,8 @@ import { createClient } from '@/lib/supabase/client';
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/' },
   { icon: Users, label: 'Alunos', href: '/alunos' },
+  { icon: Wallet, label: 'Financeiro', href: '/financeiro' },
+  { icon: ClipboardList, label: 'Diário de Classe', href: '/diario' },
   { icon: BookOpen, label: 'Sala de Aula', href: '/sala-de-aula' },
   { icon: Calendar, label: 'Agenda', href: '/agenda' },
   { icon: Trophy, label: 'Ranking', href: '/ranking' },
@@ -89,11 +93,11 @@ export default function AdaptiveHub() {
     if (userRole === 'admin') return true; // Admin vê tudo
     
     if (userRole === 'coordinator') {
-      return ['/', '/alunos', '/sala-de-aula', '/agenda', '/professores', '/configuracoes'].includes(item.href);
+      return ['/', '/alunos', '/sala-de-aula', '/agenda', '/professores', '/configuracoes', '/financeiro', '/diario'].includes(item.href);
     }
     
     if (userRole === 'teacher') {
-      return ['/', '/alunos', '/sala-de-aula', '/agenda', '/ranking'].includes(item.href);
+      return ['/', '/alunos', '/sala-de-aula', '/agenda', '/ranking', '/diario'].includes(item.href);
     }
     
     if (userRole === 'student') {

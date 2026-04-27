@@ -297,27 +297,39 @@ export async function updateFinancialStatus(studentId, status) {
 }
 
 /**
- * Registra presença/falta no diário de classe
+ * Registra presença/falta no diário de classe e atualiza status da agenda
  */
-export async function recordAttendance(studentId, status) {
+export async function recordAttendance(studentId, status, appointmentId = null) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  const { error } = await supabase
+  // 1. Registrar a evolução pedagógica (histórico)
+  const { error: evolutionError } = await supabase
     .from('lesson_evolutions')
     .insert([{
       student_id: studentId,
       teacher_id: user.id,
       class_date: new Date().toISOString(),
-      attendance_status: status, // 'present' ou 'absent'
-      consolidation: status === 'absent' ? 'ALUNO AUSENTE' : 'Presença registrada.'
+      attendance_status: status,
+      consolidation: status === 'absent' ? 'ALUNO AUSENTE (FALTA)' : 'Presença confirmada no diário.'
     }]);
 
-  if (error) {
-    console.error('Erro ao registrar presença:', error);
-    return { success: false, error: error.message };
+  if (evolutionError) {
+    console.error('Erro ao registrar evolução:', evolutionError);
+  }
+
+  // 2. Se tiver um appointmentId, atualiza o status na agenda
+  if (appointmentId) {
+    const { error: agendaError } = await supabase
+      .from('agenda')
+      .update({ status: status === 'present' ? 'completed' : 'missed' })
+      .eq('id', appointmentId);
+      
+    if (agendaError) console.error('Erro ao atualizar agenda:', agendaError);
   }
 
   revalidatePath(`/alunos/${studentId}`);
+  revalidatePath('/diario');
+  revalidatePath('/agenda');
   return { success: true };
 }
