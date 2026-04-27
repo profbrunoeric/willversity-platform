@@ -49,12 +49,23 @@ export async function getFinancialReport() {
   const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 
   // 1. Entradas Reais (Mês atual)
+  // 1.1 Mensalidades de Alunos
   const { data: payments } = await supabase
     .from('payment_history')
     .select('amount')
     .gte('payment_date', firstDayOfMonth);
   
-  const realInflow = payments?.reduce((acc, curr) => acc + curr.amount, 0) || 0;
+  const studentInflow = payments?.reduce((acc, curr) => acc + curr.amount, 0) || 0;
+
+  // 1.2 Entradas Avulsas
+  const { data: otherInflows } = await supabase
+    .from('inflows')
+    .select('amount')
+    .gte('created_at', firstDayOfMonth);
+    
+  const extraInflow = otherInflows?.reduce((acc, curr) => acc + curr.amount, 0) || 0;
+
+  const totalInflow = studentInflow + extraInflow;
 
   // 2. Saídas Reais (Mês atual)
   const { data: expenses } = await supabase
@@ -75,9 +86,9 @@ export async function getFinancialReport() {
   const projectedRevenue = profiles?.reduce((acc, curr) => acc + (curr.monthly_fee || 0), 0) || 0;
 
   return {
-    inflow: realInflow,
+    inflow: totalInflow,
     outflow: realOutflow,
-    balance: realInflow - realOutflow,
+    balance: totalInflow - realOutflow,
     projection: projectedRevenue
   };
 }

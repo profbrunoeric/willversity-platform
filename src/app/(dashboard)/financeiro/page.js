@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server';
 import FinancialManager from '@/components/Alunos/FinancialManager';
 import { getFinancialReport } from '@/app/(dashboard)/stats-actions';
 import ExpensesManager from '@/components/Alunos/ExpensesManager';
+import InflowsManager from '@/components/Alunos/InflowsManager';
 
 export default async function FinanceiroPage() {
   const students = await getStudents();
@@ -60,8 +61,11 @@ export default async function FinanceiroPage() {
         </div>
       </div>
 
-      {/* NOVO: Gestão de Despesas */}
-      <ExpensesManager />
+      {/* NOVO: Gestão de Entradas e Saídas */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <InflowsManager />
+        <ExpensesManager />
+      </div>
 
       {/* Main Content: Management List */}
       <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
