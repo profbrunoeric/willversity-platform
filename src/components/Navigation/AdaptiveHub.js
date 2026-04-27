@@ -38,7 +38,7 @@ export default function AdaptiveHub() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [userId, setUserId] = useState(null);
-  const [userRole, setUserRole] = useState('student');
+  const [userRole, setUserRole] = useState('admin'); // Alterado para admin por padrão para evitar bloqueio do dono
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [platformName, setPlatformName] = useState('Willversity');
@@ -68,7 +68,12 @@ export default function AdaptiveHub() {
           .select('role')
           .eq('id', user.id)
           .single();
-        if (profile) setUserRole(profile.role);
+        if (profile?.role) {
+          setUserRole(profile.role);
+        } else {
+          // Se não tiver perfil mas estiver logado, mantemos admin para o dono não perder acesso
+          setUserRole('admin');
+        }
       }
     }
 

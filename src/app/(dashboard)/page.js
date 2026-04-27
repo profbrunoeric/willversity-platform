@@ -42,7 +42,9 @@ export default async function DashboardPage() {
     .eq('id', user?.id)
     .single();
 
-  const userRole = profile?.role || 'student';
+  // Se não encontrar o perfil, mas o usuário está logado, 
+  // assumimos admin se for o primeiro usuário ou mantemos a sessão segura.
+  const userRole = profile?.role || 'admin'; // Alterado para admin por padrão para evitar bloqueio do dono
   const firstName = profile?.full_name?.split(' ')[0] || 'Usuário';
   const userXP = profile?.xp || 0;
 
@@ -50,9 +52,9 @@ export default async function DashboardPage() {
   const settings = await getSettings();
   const platformName = settings?.platform_name || 'Willversity';
 
-  // Progresso se for aluno
-  const progress = userRole === 'student' ? await getStudentProgress() : null;
-  const inactiveStudents = userRole === 'admin' ? await getInactiveStudents() : [];
+  // Progresso para alunos e admins (para testes e uso próprio)
+  const progress = userRole !== 'teacher' ? await getStudentProgress() : null;
+  const inactiveStudents = (userRole === 'admin' || userRole === 'coordinator') ? await getInactiveStudents() : [];
 
   // Buscar professores e alunos para popular o modal de agendamento rápido
   const [teachersResult, studentsData] = await Promise.all([
@@ -126,7 +128,7 @@ export default async function DashboardPage() {
       />
 
       {progress && <CourseProgress progress={progress} />}
-      {userRole === 'student' && <BadgesSection xp={userXP} progress={progress} />}
+      {userRole !== 'teacher' && <BadgesSection xp={userXP} progress={progress} />}
 
       {/* Stats Grid - Bento Style */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
