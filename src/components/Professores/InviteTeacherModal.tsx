@@ -5,9 +5,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Mail, Ticket, Copy, Check, Loader2, Sparkles } from 'lucide-react';
 import { generateRegistrationCode } from '@/app/(dashboard)/alunos/actions';
 
-export default function InviteTeacherModal({ isOpen, onClose }) {
+interface InviteTeacherModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export default function InviteTeacherModal({ isOpen, onClose }: InviteTeacherModalProps) {
   const [loading, setLoading] = useState(false);
-  const [inviteCode, setInviteCode] = useState(null);
+  const [inviteCode, setInviteCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
   const handleGenerate = async (e) => {
