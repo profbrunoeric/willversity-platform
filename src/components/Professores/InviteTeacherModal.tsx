@@ -15,17 +15,17 @@ export default function InviteTeacherModal({ isOpen, onClose }: InviteTeacherMod
   const [inviteCode, setInviteCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const handleGenerate = async (e) => {
+  const handleGenerate = async (e: React.MouseEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
       const result = await generateRegistrationCode('teacher');
-      if (result.success) {
+      if (result.success && result.code) {
         setInviteCode(result.code);
       } else {
         alert(result.error || 'Erro ao gerar código.');
       }
-    } catch (err) {
+    } catch (err: any) {
       alert('Erro crítico: ' + err.message);
     } finally {
       setLoading(false);
