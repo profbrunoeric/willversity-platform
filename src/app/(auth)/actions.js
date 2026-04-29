@@ -53,6 +53,9 @@ export async function signUp(formData) {
   const password = formData.get('password');
   const fullName = formData.get('fullName');
   const studentCode = formData.get('studentCode');
+  const phone = formData.get('phone');
+  const birthDate = formData.get('birthDate');
+  const avatarFile = formData.get('avatar');
 
   // 1. Criar o usuário no Supabase Auth primeiro
   const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -80,6 +83,36 @@ export async function signUp(formData) {
       console.error('Erro na ativação via RPC:', rpcError);
       return { error: 'Código de aluno inválido ou já utilizado. Sua conta foi criada, mas precisa ser ativada.' };
     }
+
+    // 3. Atualizar o perfil com dados adicionais (WhatsApp, Data Nasc, Foto)
+    const profileUpdates = {
+      phone: phone,
+      birth_date: birthDate || null,
+    };
+
+    // Lógica de Upload de Avatar
+    if (avatarFile && avatarFile.size > 0) {
+      const fileExt = avatarFile.name.split('.').pop();
+      const fileName = `${authData.user.id}/${Math.random()}.${fileExt}`;
+      
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, avatarFile);
+
+      if (!uploadError) {
+        const { data: { publicUrl } } = supabase.storage
+          .from('avatars')
+          .getPublicUrl(fileName);
+        profileUpdates.avatar_url = publicUrl;
+      } else {
+        console.error('Erro no upload do avatar:', uploadError);
+      }
+    }
+
+    await supabase
+      .from('profiles')
+      .update(profileUpdates)
+      .eq('id', authData.user.id);
   }
 
   redirect('/');

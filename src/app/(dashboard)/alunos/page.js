@@ -34,6 +34,8 @@ export default async function AlunosPage({ searchParams }) {
     redirect('/');
   }
 
+  const isAdmin = profile?.role === 'admin';
+
   const students = await getStudents(searchParams);
   const stats = await getStudentStats();
 
@@ -63,7 +65,7 @@ export default async function AlunosPage({ searchParams }) {
               <tr className="bg-slate-50/50 border-b border-slate-100">
                 <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Identificação</th>
                 <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Nível Acadêmico</th>
-                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Financeiro</th>
+                {isAdmin && <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Financeiro</th>}
                 <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Comunicação</th>
                 <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Ações</th>
               </tr>
@@ -122,26 +124,28 @@ export default async function AlunosPage({ searchParams }) {
                         </div>
                       </div>
                     </td>
-                    <td className="px-8 py-6">
-                      <div className="flex flex-col gap-1">
-                        <span className={`w-fit px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 ${
-                          student.payment_status === 'overdue' ? 'bg-rose-50 text-rose-600 border border-rose-100' :
-                          student.payment_status === 'pending' ? 'bg-amber-50 text-amber-600 border border-amber-100' :
-                          'bg-emerald-50 text-emerald-600 border border-emerald-100'
-                        }`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${
-                            student.payment_status === 'overdue' ? 'bg-rose-500' :
-                            student.payment_status === 'pending' ? 'bg-amber-500' :
-                            'bg-emerald-500'
-                          }`} />
-                          {
-                            student.payment_status === 'overdue' ? 'Atrasado' :
-                            student.payment_status === 'pending' ? 'Pendente' : 'Em Dia'
-                          }
-                        </span>
-                        <p className="text-[10px] text-slate-400 font-bold ml-1 uppercase tracking-tighter">Mensalidade Maio</p>
-                      </div>
-                    </td>
+                    {isAdmin && (
+                      <td className="px-8 py-6">
+                        <div className="flex flex-col gap-1">
+                          <span className={`w-fit px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 ${
+                            student.payment_status === 'overdue' ? 'bg-rose-50 text-rose-600 border border-rose-100' :
+                            student.payment_status === 'pending' ? 'bg-amber-50 text-amber-600 border border-amber-100' :
+                            'bg-emerald-50 text-emerald-600 border border-emerald-100'
+                          }`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${
+                              student.payment_status === 'overdue' ? 'bg-rose-500' :
+                              student.payment_status === 'pending' ? 'bg-amber-500' :
+                              'bg-emerald-500'
+                            }`} />
+                            {
+                              student.payment_status === 'overdue' ? 'Atrasado' :
+                              student.payment_status === 'pending' ? 'Pendente' : 'Em Dia'
+                            }
+                          </span>
+                          <p className="text-[10px] text-slate-400 font-bold ml-1 uppercase tracking-tighter">Mensalidade Maio</p>
+                        </div>
+                      </td>
+                    )}
                     <td className="px-8 py-6">
                       {student.phone ? (
                         <a 

@@ -1,8 +1,8 @@
-'use client'
+'use client';
 
 import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
-import TeacherFormModal from './TeacherFormModal';
+import InviteTeacherModal from './InviteTeacherModal';
 
 export default function AddTeacherButton() {
   const [isOpen, setIsOpen] = useState(false);
@@ -16,7 +16,7 @@ export default function AddTeacherButton() {
         <Plus size={20} /> ADICIONAR PROFESSOR
       </button>
 
-      <TeacherFormModal 
+      <InviteTeacherModal 
         isOpen={isOpen} 
         onClose={() => setIsOpen(false)} 
       />

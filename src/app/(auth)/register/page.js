@@ -2,7 +2,7 @@
 
 import React, { useState, Suspense } from 'react';
 import { motion } from 'framer-motion';
-import { User, Mail, Lock, Sparkles, ArrowRight, Ticket, CheckCircle2 } from 'lucide-react';
+import { User, Mail, Lock, Sparkles, ArrowRight, Ticket, CheckCircle2, MessageCircle, Calendar } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { signUp } from '../actions';
 import Link from 'next/link';
@@ -13,6 +13,18 @@ function RegisterForm() {
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(null);
+  const [avatarFile, setAvatarFile] = useState(null);
+
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setAvatarFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => setAvatarPreview(reader.result);
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,6 +38,9 @@ function RegisterForm() {
     setError(null);
     
     const formData = new FormData(e.target);
+    if (avatarFile) {
+      formData.append('avatar', avatarFile);
+    }
     const result = await signUp(formData);
     
     if (result?.error) {
@@ -76,8 +91,28 @@ function RegisterForm() {
             </motion.div>
           )}
 
-          <div className="space-y-4">
-            {/* Campo: Nome Completo */}
+          <div className="space-y-6">
+            {/* Foto de Perfil (Opcional) */}
+            <div className="flex flex-col items-center gap-4 mb-8">
+              <div className="relative group">
+                <div className="w-24 h-24 bg-white/10 rounded-[2rem] border-2 border-dashed border-white/20 flex items-center justify-center overflow-hidden transition-all group-hover:border-primary/50">
+                  {avatarPreview ? (
+                    <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <User className="text-slate-500" size={32} />
+                  )}
+                </div>
+                <input 
+                  type="file" 
+                  accept="image/*"
+                  onChange={handleAvatarChange}
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                />
+              </div>
+              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Foto de Perfil (Opcional)</p>
+            </div>
+
+            {/* Nome Completo */}
             <div className="relative group">
               <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">
                 <User size={20} />
@@ -89,6 +124,33 @@ function RegisterForm() {
                 placeholder="Seu nome completo"
                 className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pl-16 pr-6 text-white placeholder:text-slate-500 outline-none focus:ring-4 ring-primary/20 focus:border-primary/50 transition-all font-medium"
               />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* WhatsApp */}
+              <div className="relative group">
+                <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-500 transition-colors">
+                  <MessageCircle size={20} />
+                </div>
+                <input 
+                  name="phone"
+                  type="text" 
+                  placeholder="WhatsApp (00) 00000-0000"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pl-16 pr-6 text-white placeholder:text-slate-500 outline-none focus:ring-4 ring-primary/20 focus:border-primary/50 transition-all font-medium"
+                />
+              </div>
+
+              {/* Data de Nascimento */}
+              <div className="relative group">
+                <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors">
+                  <Calendar size={20} />
+                </div>
+                <input 
+                  name="birthDate"
+                  type="date" 
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pl-16 pr-6 text-white placeholder:text-slate-500 outline-none focus:ring-4 ring-primary/20 focus:border-primary/50 transition-all font-medium appearance-none"
+                />
+              </div>
             </div>
 
             {/* Campo: E-mail */}

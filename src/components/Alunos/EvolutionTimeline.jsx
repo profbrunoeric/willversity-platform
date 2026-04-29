@@ -12,19 +12,34 @@ import {
   MessageSquare, 
   BrainCircuit, 
   Target, 
-  Flag 
+  Flag,
+  Edit3,
+  Trash2,
+  Save,
+  X,
+  Loader2
 } from 'lucide-react';
+import { updateEvolution, deleteEvolution } from '@/app/(dashboard)/alunos/actions';
 
-const StageDetail = ({ label, content, icon: Icon, colorClass }) => {
-  if (!content) return null;
+const StageDetail = ({ label, content, icon: Icon, colorClass, isEditing, value, onChange }) => {
+  if (!content && !isEditing) return null;
   return (
-    <div className="flex gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100/50">
+    <div className={`flex gap-4 p-4 rounded-2xl border transition-all ${isEditing ? 'bg-white border-primary/20 ring-4 ring-primary/5' : 'bg-slate-50 border-slate-100/50'}`}>
       <div className={`p-2 rounded-lg h-fit ${colorClass}`}>
         <Icon size={16} />
       </div>
-      <div>
+      <div className="flex-1">
         <h5 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{label}</h5>
-        <p className="text-sm text-slate-600 leading-relaxed">{content}</p>
+        {isEditing ? (
+          <textarea 
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="w-full bg-transparent text-sm text-slate-600 outline-none border-none resize-none focus:ring-0 p-0"
+            rows={3}
+          />
+        ) : (
+          <p className="text-sm text-slate-600 leading-relaxed">{content}</p>
+        )}
       </div>
     </div>
   );
@@ -32,10 +47,42 @@ const StageDetail = ({ label, content, icon: Icon, colorClass }) => {
 
 const EvolutionItem = ({ evolution }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editData, setEditData] = useState({
+    warm_up: evolution.warm_up || '',
+    comprehensible_input: evolution.comprehensible_input || '',
+    guided_practice: evolution.guided_practice || '',
+    meaningful_output: evolution.meaningful_output || '',
+    consolidation: evolution.consolidation || '',
+    class_date: evolution.class_date?.split('T')[0] || ''
+  });
 
   const date = new Date(evolution.class_date);
   const formattedDate = date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
   const formattedTime = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+  const handleUpdate = async () => {
+    setIsSubmitting(true);
+    const res = await updateEvolution(evolution.id, evolution.student_id, editData);
+    if (res.success) {
+      setIsEditing(false);
+      setIsExpanded(true);
+    } else {
+      alert(res.error || 'Erro ao atualizar.');
+    }
+    setIsSubmitting(false);
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm('Tem certeza que deseja excluir este registro permanente?')) return;
+    setIsSubmitting(true);
+    const res = await deleteEvolution(evolution.id, evolution.student_id);
+    if (!res.success) {
+      alert(res.error || 'Erro ao excluir.');
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="relative pl-12 pb-10 last:pb-0">
@@ -50,81 +97,152 @@ const EvolutionItem = ({ evolution }) => {
       </div>
 
       {/* Content Card */}
-      <div className={`bg-white rounded-[2rem] border transition-all duration-300 ${
-        isExpanded ? 'border-primary/20 shadow-xl shadow-primary/5 p-6' : 'border-slate-100 p-5 hover:border-primary/30'
-      }`}>
-        <div 
-          className="flex items-center justify-between cursor-pointer"
-          onClick={() => setIsExpanded(!isExpanded)}
-        >
-          <div className="flex items-center gap-4">
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <span className="text-base font-black text-slate-900">{formattedDate}</span>
-                <span className="text-[10px] px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full font-bold">
-                  {formattedTime}
-                </span>
+        <div className={`bg-white rounded-[2rem] border transition-all duration-300 ${
+          isExpanded ? 'border-primary/20 shadow-xl shadow-primary/5 p-6' : 'border-slate-100 p-5 hover:border-primary/30'
+        }`}>
+          <div className="flex items-center justify-between">
+            <div 
+              className="flex items-center gap-4 cursor-pointer flex-1"
+              onClick={() => {
+                if (!isEditing) setIsExpanded(!isExpanded);
+              }}
+            >
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                  {isEditing ? (
+                    <input 
+                      type="date"
+                      value={editData.class_date}
+                      onChange={(e) => setEditData({...editData, class_date: e.target.value})}
+                      className="text-sm font-black text-slate-900 border-none bg-slate-50 rounded-lg px-2 py-1 outline-none"
+                    />
+                  ) : (
+                    <span className="text-base font-black text-slate-900">{formattedDate}</span>
+                  )}
+                  {!isEditing && (
+                    <span className="text-[10px] px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full font-bold">
+                      {formattedTime}
+                    </span>
+                  )}
+                </div>
+                {!isExpanded && !isEditing && (
+                  <p className="text-xs text-slate-400 mt-1 line-clamp-1 italic">
+                    {evolution.consolidation || 'Resumo pedagógico registrado...'}
+                  </p>
+                )}
               </div>
-              {!isExpanded && (
-                <p className="text-xs text-slate-400 mt-1 line-clamp-1 italic">
-                  {evolution.consolidation || 'Resumo pedagógico registrado...'}
-                </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {isExpanded && !isEditing && (
+                <div className="flex items-center gap-1 mr-2 animate-in fade-in slide-in-from-right-2">
+                  <button 
+                    onClick={() => setIsEditing(true)}
+                    className="p-2 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-xl transition-all"
+                  >
+                    <Edit3 size={18} />
+                  </button>
+                  <button 
+                    onClick={handleDelete}
+                    disabled={isSubmitting}
+                    className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              )}
+
+              {isEditing ? (
+                <div className="flex items-center gap-2 animate-in zoom-in-95">
+                  <button 
+                    onClick={() => setIsEditing(false)}
+                    className="p-2 text-slate-400 hover:bg-slate-100 rounded-xl transition-all"
+                  >
+                    <X size={18} />
+                  </button>
+                  <button 
+                    onClick={handleUpdate}
+                    disabled={isSubmitting}
+                    className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl font-bold text-xs shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
+                  >
+                    {isSubmitting ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                    SALVAR
+                  </button>
+                </div>
+              ) : (
+                <div 
+                  className={`p-2 rounded-full transition-all cursor-pointer ${isExpanded ? 'bg-primary/10 text-primary rotate-180' : 'text-slate-300'}`}
+                  onClick={() => setIsExpanded(!isExpanded)}
+                >
+                  <ChevronDown size={20} />
+                </div>
               )}
             </div>
           </div>
-          <div className={`p-2 rounded-full transition-all ${isExpanded ? 'bg-primary/10 text-primary rotate-180' : 'text-slate-300'}`}>
-            <ChevronDown size={20} />
-          </div>
-        </div>
-
-        <AnimatePresence>
-          {isExpanded && (
-            <motion.div 
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
-            >
-              <div className="pt-6 space-y-4">
-                <div className="h-px bg-slate-100 w-full mb-6" />
-                
-                <div className="grid grid-cols-1 gap-3">
-                  <StageDetail 
-                    label="1. Warm-up" 
-                    content={evolution.warm_up} 
-                    icon={Clock} 
-                    colorClass="bg-amber-50 text-amber-600" 
-                  />
-                  <StageDetail 
-                    label="2. Comprehensible Input" 
-                    content={evolution.comprehensible_input} 
-                    icon={BrainCircuit} 
-                    colorClass="bg-blue-50 text-blue-600" 
-                  />
-                  <StageDetail 
-                    label="3. Guided Practice" 
-                    content={evolution.guided_practice} 
-                    icon={BookOpen} 
-                    colorClass="bg-purple-50 text-purple-600" 
-                  />
-                  <StageDetail 
-                    label="4. Meaningful Output" 
-                    content={evolution.meaningful_output} 
-                    icon={MessageSquare} 
-                    colorClass="bg-emerald-50 text-emerald-600" 
-                  />
-                  <StageDetail 
-                    label="5. Consolidation" 
-                    content={evolution.consolidation} 
-                    icon={Flag} 
-                    colorClass="bg-rose-50 text-rose-600" 
-                  />
+  
+          <AnimatePresence>
+            {(isExpanded || isEditing) && (
+              <motion.div 
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="pt-6 space-y-4">
+                  <div className="h-px bg-slate-100 w-full mb-6" />
+                  
+                  <div className="grid grid-cols-1 gap-3">
+                    <StageDetail 
+                      label="1. Warm-up" 
+                      content={evolution.warm_up} 
+                      icon={Clock} 
+                      colorClass="bg-amber-50 text-amber-600"
+                      isEditing={isEditing}
+                      value={editData.warm_up}
+                      onChange={(val) => setEditData({...editData, warm_up: val})}
+                    />
+                    <StageDetail 
+                      label="2. Comprehensible Input" 
+                      content={evolution.comprehensible_input} 
+                      icon={BrainCircuit} 
+                      colorClass="bg-blue-50 text-blue-600"
+                      isEditing={isEditing}
+                      value={editData.comprehensible_input}
+                      onChange={(val) => setEditData({...editData, comprehensible_input: val})}
+                    />
+                    <StageDetail 
+                      label="3. Guided Practice" 
+                      content={evolution.guided_practice} 
+                      icon={BookOpen} 
+                      colorClass="bg-purple-50 text-purple-600"
+                      isEditing={isEditing}
+                      value={editData.guided_practice}
+                      onChange={(val) => setEditData({...editData, guided_practice: val})}
+                    />
+                    <StageDetail 
+                      label="4. Meaningful Output" 
+                      content={evolution.meaningful_output} 
+                      icon={MessageSquare} 
+                      colorClass="bg-emerald-50 text-emerald-600"
+                      isEditing={isEditing}
+                      value={editData.meaningful_output}
+                      onChange={(val) => setEditData({...editData, meaningful_output: val})}
+                    />
+                    <StageDetail 
+                      label="5. Consolidation" 
+                      content={evolution.consolidation} 
+                      icon={Flag} 
+                      colorClass="bg-rose-50 text-rose-600"
+                      isEditing={isEditing}
+                      value={editData.consolidation}
+                      onChange={(val) => setEditData({...editData, consolidation: val})}
+                    />
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
     </div>
   );
 };

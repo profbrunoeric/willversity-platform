@@ -3,8 +3,64 @@
 import { createClient } from '@/lib/supabase/server';
 
 /**
- * Busca todas as lições cadastradas, incluindo os dados do professor vinculado.
- * Ordenadas pelo índice definido no Command Center.
+ * Busca todos os módulos e suas respectivas lições ordenadas.
+ */
+export async function getModules() {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('modules')
+    .select(`
+      *,
+      lessons (
+        *,
+        professores (*)
+      )
+    `)
+    .order('order_index', { ascending: true });
+    
+  if (error) {
+    console.error('Error fetching modules:', error);
+    return [];
+  }
+  
+  // Ordenar as lições dentro de cada módulo também
+  const sortedModules = data.map(mod => ({
+    ...mod,
+    lessons: mod.lessons.sort((a, b) => a.order_index - b.order_index)
+  }));
+  
+  return sortedModules;
+}
+
+export async function saveModule(moduleData) {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('modules')
+    .upsert({
+      id: moduleData.id || undefined,
+      title: moduleData.title,
+      description: moduleData.description,
+      order_index: moduleData.order_index || 0,
+      updated_at: new Date().toISOString(),
+    })
+    .select();
+
+  if (error) throw error;
+  return data[0];
+}
+
+export async function deleteModule(id) {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from('modules')
+    .delete()
+    .eq('id', id);
+    
+  if (error) throw error;
+}
+
+/**
+ * Busca todas as lições (mantido para retrocompatibilidade se necessário).
  */
 export async function getLessons() {
   const supabase = createClient();
@@ -31,9 +87,12 @@ export async function saveLesson(lesson) {
     .from('lessons')
     .upsert({
       id: lesson.id || undefined,
+      module_id: lesson.module_id,
       title: lesson.title,
       description: lesson.description,
-      video_url: lesson.video_url,
+      video_url: lesson.video_url, // Mantido para retrocompatibilidade
+      icon: lesson.icon || '📝',
+      content_blocks: lesson.content_blocks || [],
       teacher_id: lesson.teacher_id,
       order_index: lesson.order_index || 0,
       updated_at: new Date().toISOString(),

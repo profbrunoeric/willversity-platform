@@ -368,3 +368,50 @@ export async function recordAttendance(studentId, status, appointmentId = null) 
   revalidatePath('/agenda');
   return { success: true };
 }
+
+/**
+ * Atualiza uma evolução pedagógica existente
+ */
+export async function updateEvolution(evolutionId, studentId, data) {
+  const supabase = createClient();
+  
+  const { error } = await supabase
+    .from('lesson_evolutions')
+    .update({
+      warm_up: data.warm_up,
+      comprehensible_input: data.comprehensible_input,
+      guided_practice: data.guided_practice,
+      meaningful_output: data.meaningful_output,
+      consolidation: data.consolidation,
+      class_date: data.class_date
+    })
+    .eq('id', evolutionId);
+
+  if (error) {
+    console.error('Erro ao atualizar evolução:', error);
+    return { error: 'Não foi possível atualizar a evolução.' };
+  }
+
+  revalidatePath(`/alunos/${studentId}`);
+  return { success: true };
+}
+
+/**
+ * Exclui uma evolução pedagógica
+ */
+export async function deleteEvolution(evolutionId, studentId) {
+  const supabase = createClient();
+  
+  const { error } = await supabase
+    .from('lesson_evolutions')
+    .delete()
+    .eq('id', evolutionId);
+
+  if (error) {
+    console.error('Erro ao excluir evolução:', error);
+    return { error: 'Não foi possível excluir a evolução.' };
+  }
+
+  revalidatePath(`/alunos/${studentId}`);
+  return { success: true };
+}

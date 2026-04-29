@@ -53,7 +53,6 @@ async function getStudentData(id) {
   return { student, evolutions, appointments: appointments || [] };
 }
 
-import FinancialManager from '@/components/Alunos/FinancialManager';
 
 export default async function StudentDetailPage({ params }) {
   const supabase = createClient();
